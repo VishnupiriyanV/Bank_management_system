@@ -24,7 +24,7 @@ public class ClosedAccountArchive {
             pw.println();
             System.out.println("[Archive] Closed account #" + acc.getAccountNumber()
                 + " details saved to '" + ARCHIVE_FILE + "'.");
-        } catch (IOException e) {
+        } catch (IOException | SecurityException e) {
             System.out.println("[Archive ERROR] Could not write to " + ARCHIVE_FILE
                 + ": " + e.getMessage());
         }

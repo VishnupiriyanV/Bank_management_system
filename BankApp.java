@@ -14,19 +14,23 @@ public class BankApp {
         while (running) {
             showMenu();
             int choice = readInt();
-            switch (choice) {
-                case 1:  createAccount();          break;
-                case 2:  deposit();                break;
-                case 3:  withdraw();               break;
-                case 4:  addInterest();            break;
-                case 5:  transferMoney();          break;
-                case 6:  viewTransactionHistory(); break;
-                case 7:  viewCustomer();           break;
-                case 8:  manageAccountStatus();    break;
-                case 9:  manageCreditCard();        break;
-                case 10: manageInternetBanking();  break;
-                case 11: running = false;          break;
-                default: System.out.println("Invalid choice.");
+            try {
+                switch (choice) {
+                    case 1:  createAccount();          break;
+                    case 2:  deposit();                break;
+                    case 3:  withdraw();               break;
+                    case 4:  addInterest();            break;
+                    case 5:  transferMoney();          break;
+                    case 6:  viewTransactionHistory(); break;
+                    case 7:  viewCustomer();           break;
+                    case 8:  manageAccountStatus();    break;
+                    case 9:  manageCreditCard();       break;
+                    case 10: manageInternetBanking();  break;
+                    case 11: running = false;          break;
+                    default: System.out.println("Invalid choice.");
+                }
+            } catch (RuntimeException ex) {
+                System.out.println("Operation failed: " + ex.getMessage());
             }
         }
         scanner.close();
@@ -59,7 +63,7 @@ public class BankApp {
     private static void createAccount() {
         System.out.println("\n-- Create Account --");
         System.out.print("Name             : "); String name    = scanner.nextLine();
-        System.out.print("Contact No       : "); long   contact = scanner.nextLong(); scanner.nextLine();
+        System.out.print("Contact No       : "); long   contact = readLong();
         System.out.print("Email            : "); String email   = scanner.nextLine();
         System.out.print("Gender           : "); String gender  = scanner.nextLine();
         System.out.print("DOB (DD/MM/YYYY) : "); String dob     = scanner.nextLine();
@@ -69,7 +73,7 @@ public class BankApp {
         System.out.println("Customer '" + name + "' created!");
 
         System.out.print("\nAccount Number   : "); String accNum  = scanner.nextLine();
-        System.out.print("Initial Balance  : $"); double initBal = scanner.nextDouble(); scanner.nextLine();
+        System.out.print("Initial Balance  : $"); double initBal = readDouble();
 
         System.out.println("\nAccount Types:");
         System.out.println("  BS - Basic Savings   (withdrawal limit $500, 3 free txns/month)");
@@ -82,19 +86,19 @@ public class BankApp {
         switch (typeChoice) {
             case "BS": {
                 System.out.print("Interest Rate (%): ");
-                double interest = scanner.nextDouble(); scanner.nextLine();
+                double interest = readDouble();
                 cust.addAccount(new BasicSavingsAccount(accNum, initBal, interest));
                 break;
             }
             case "PS": {
                 System.out.print("Interest Rate (%): ");
-                double interest = scanner.nextDouble(); scanner.nextLine();
+                double interest = readDouble();
                 cust.addAccount(new PremiumSavingsAccount(accNum, initBal, interest, name));
                 break;
             }
             case "PL": {
                 System.out.print("Interest Rate (%): ");
-                double interest = scanner.nextDouble(); scanner.nextLine();
+                double interest = readDouble();
                 System.out.print("Internet Banking Username: ");
                 String ibUser = scanner.nextLine();
                 System.out.print("Internet Banking Password: ");
@@ -105,7 +109,7 @@ public class BankApp {
             }
             case "C": {
                 System.out.print("Overdraft Limit: $");
-                double overdraft = scanner.nextDouble(); scanner.nextLine();
+                double overdraft = readDouble();
                 cust.addAccount(new CurrentAccount(accNum, initBal, overdraft));
                 break;
             }
@@ -121,7 +125,7 @@ public class BankApp {
         Account acc = findAccountGlobally(scanner.nextLine());
         if (acc == null) return;
         System.out.print("Amount: $");
-        double amount = scanner.nextDouble(); scanner.nextLine();
+        double amount = readDouble();
         acc.deposit(amount);
     }
 
@@ -132,7 +136,7 @@ public class BankApp {
         Account acc = findAccountGlobally(scanner.nextLine());
         if (acc == null) return;
         System.out.print("Amount: $");
-        double amount = scanner.nextDouble(); scanner.nextLine();
+        double amount = readDouble();
         acc.withdraw(amount);
     }
 
@@ -171,7 +175,7 @@ public class BankApp {
         if (toAcc == null) return;
 
         System.out.print("Transfer Amount: $");
-        double amount = scanner.nextDouble(); scanner.nextLine();
+        double amount = readDouble();
         TransferService.transfer(fromAcc, toAcc, amount);
     }
 
@@ -274,7 +278,7 @@ public class BankApp {
                 break;
             case 2:
                 System.out.print("Spend Amount: $");
-                double spendAmt = scanner.nextDouble(); scanner.nextLine();
+                double spendAmt = readDouble();
                 if (acc instanceof PlatinumSavingsAccount)
                     ((PlatinumSavingsAccount) acc).spendOnCreditCard(spendAmt);
                 else
@@ -283,7 +287,7 @@ public class BankApp {
             case 3:
                 System.out.printf("Outstanding balance: $%.2f%n", card.getUsedCredit());
                 System.out.print("Payment Amount: $");
-                double payAmt = scanner.nextDouble(); scanner.nextLine();
+                double payAmt = readDouble();
                 if (acc instanceof PlatinumSavingsAccount)
                     ((PlatinumSavingsAccount) acc).payCreditCardBill(payAmt);
                 else
@@ -329,7 +333,7 @@ public class BankApp {
                 break;
             case 3:
                 System.out.print("Biller Name  : "); String biller = scanner.nextLine();
-                System.out.print("Bill Amount  : $"); double billAmt = scanner.nextDouble(); scanner.nextLine();
+                System.out.print("Bill Amount  : $"); double billAmt = readDouble();
                 platAcc.payBillOnline(biller, billAmt);
                 break;
             case 4:
@@ -400,8 +404,35 @@ public class BankApp {
     }
 
     private static int readInt() {
-        int val = scanner.nextInt();
-        scanner.nextLine();
-        return val;
+        while (true) {
+            try {
+                String input = scanner.nextLine().trim();
+                return Integer.parseInt(input);
+            } catch (NumberFormatException ex) {
+                System.out.print("Invalid input. Please enter a whole number: ");
+            }
+        }
+    }
+
+    private static double readDouble() {
+        while (true) {
+            try {
+                String input = scanner.nextLine().trim();
+                return Double.parseDouble(input);
+            } catch (NumberFormatException ex) {
+                System.out.print("Invalid input. Please enter a numeric value: ");
+            }
+        }
+    }
+
+    private static long readLong() {
+        while (true) {
+            try {
+                String input = scanner.nextLine().trim();
+                return Long.parseLong(input);
+            } catch (NumberFormatException ex) {
+                System.out.print("Invalid input. Please enter digits only: ");
+            }
+        }
     }
 }
